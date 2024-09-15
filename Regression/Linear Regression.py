@@ -35,8 +35,9 @@ pred_sales=beta2[0]*pot_spend**3+\
 #plt.plot(pot_spend, pred_sales, color="red")
 
 
-fig,axes = plt.subplots(nrows=1,ncols=3,figsize=(16,6))
+#fig,axes = plt.subplots(nrows=1,ncols=3,figsize=(16,6))
 
+'''
 axes[0].plot(df['TV'],df['sales'],'o')
 axes[0].set_ylabel("Sales")
 axes[0].set_title("TV Spend")
@@ -50,7 +51,7 @@ axes[2].set_title("Newspaper Spend");
 axes[2].set_ylabel("Sales")
 plt.tight_layout();
 #plt.show()
-
+'''
 
 #Линейная регрессия в SKlearn
 
@@ -66,11 +67,52 @@ model=LinearRegression()
 model.fit(X_train, y_train)
 test_prediction=model.predict(X_test)
 
+#Выявление ошибки
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 mean_sales=df['sales'].mean()
 print(mean_absolute_error(y_test, test_prediction))
 print(mean_squared_error(y_test, test_prediction))
 print(np.sqrt(mean_squared_error(y_test, test_prediction)))
+
+#Анализ остатков
+test_residuals=y_test-test_prediction
+sns.scatterplot(x=y_test, y=test_residuals)
+plt.axhline(y=0, color="red")
+sns.displot(test_residuals, bins=25, kde=True)
+#plt.show()
+
+#Создание финальной модели
+
+final_model=LinearRegression()
+X=X.drop("total_spend", axis=1)
+final_model.fit(X, y)
+print(final_model.coef_)
+print(X.head())
+
+y_hat=final_model.predict(X)
+
+fig,axes = plt.subplots(nrows=1,ncols=3,figsize=(16,6))
+
+axes[0].plot(df['TV'],df['sales'],'o')
+axes[0].plot(df['TV'],y_hat,'o',color='red')
+axes[0].set_ylabel("Sales")
+axes[0].set_title("TV Spend")
+
+axes[1].plot(df['radio'],df['sales'],'o')
+axes[1].plot(df['radio'],y_hat,'o',color='red')
+axes[1].set_title("Radio Spend")
+axes[1].set_ylabel("Sales")
+
+axes[2].plot(df['newspaper'],df['sales'],'o')
+axes[2].plot(df['newspaper'],y_hat,'o',color='red')
+axes[2].set_title("Newspaper Spend");
+axes[2].set_ylabel("Sales")
+plt.tight_layout();
+plt.show()
+
+#Сохранение модели
+from joblib import dump, load
+dump(final_model, "final_sales_model.joblib")
 
 
 
